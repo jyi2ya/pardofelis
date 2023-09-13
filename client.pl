@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 
 my %cfg = (
-    server => 'https://scyall.com/jyi/pd',
-    payload_size => 1024 * 512, # 0.5M
+    server => 'http://127.0.0.1:48386',
+    payload_size => 1024 * 78, # 78 KB
 );
 
 use utf8;
