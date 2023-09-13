@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
 
 my %cfg = (
-    server => 'http://127.0.0.1:48386',
-    payload_size => 4096, # bytes
+    server => 'https://scyall.com/jyi/pd',
+    payload_size => 1024 * 512, # 0.5M
 );
 
 use utf8;
@@ -16,6 +16,8 @@ use Fcntl 'SEEK_CUR';
 my $ua = HTTP::Tiny->new;
 
 for my $filename (@ARGV) {
+    open my $fd, '<', $filename or die;
+
     my $resp = $ua->post(
         "$cfg{server}/hello" => {
             content => encode_json {
@@ -26,9 +28,9 @@ for my $filename (@ARGV) {
 
     $resp = decode_json $resp->{content};
 
-    my $id = $resp->{id};
+    my $last_report_time = time;
 
-    open my $fd, '<', $filename or die;
+    my $id = $resp->{id};
     for (;;) {
         my $buf = undef;
         my $offset = sysseek $fd, 0, SEEK_CUR;
@@ -42,6 +44,11 @@ for my $filename (@ARGV) {
                     payload => encode_base64 $buf,
                 }
             }
-        )
+        );
+
+        if (time() - $last_report_time >= 3) {
+            my $percentage = ($offset + $len) * 100 / (-s $filename);
+            print "$percentage%\n";
+        }
     }
 }
